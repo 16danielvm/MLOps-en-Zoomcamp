@@ -1,0 +1,15 @@
+artifact_uri: file:///d:/Universidad/Cursos/MLOps%20en%20Zoomcamp/02-experiment-tracking/Homework2/mlruns/0/880f29b7ff2c4489a86ef6bbf332cbac/artifacts
+end_time: 1748112547373
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 880f29b7ff2c4489a86ef6bbf332cbac
+run_name: nyc-taxi-02
+run_uuid: 880f29b7ff2c4489a86ef6bbf332cbac
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1748112516553
+status: 3
+tags: []
+user_id: Daniel Muñoz Viveros
