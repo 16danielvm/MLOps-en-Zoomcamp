@@ -63,7 +63,7 @@ def create_X(df, dv=None):
     tags=["model_training", "xgboost", "mlflow"],
 )
 def train_model(X_train, y_train, X_val, y_val, dv):
-    with mlflow.start_run(run_name='taxi_pred_xgboost_orchestration2') as run:
+    with mlflow.start_run(run_name='taxi_pred_xgboost_orchestration5') as run:
         train = xgb.DMatrix(X_train, label=y_train)
         valid = xgb.DMatrix(X_val, label=y_val)
 
@@ -116,32 +116,53 @@ def run(train_year, train_month, val_year, val_month):
     return run_id
 
 @flow
-def master_flow():
+def master_flow(train_date: str = None, val_date: str = None):
     from datetime import datetime
     from dateutil.relativedelta import relativedelta
 
-    today = datetime.today()
-
-    train_date = today - relativedelta(months=3)
-    val_date = today - relativedelta(months=2)
+    if train_date is None or val_date is None:
+        today = datetime.today()
+        train_date = today - relativedelta(months=3)
+        val_date = today - relativedelta(months=2)
+    else:
+        train_date = datetime.strptime(train_date, "%Y-%m-%d")
+        val_date = datetime.strptime(val_date, "%Y-%m-%d")
 
     run_id = run(
-    train_year=train_date.year, train_month=train_date.month,
-    val_year=val_date.year, val_month=val_date.month
+        train_year=train_date.year, train_month=train_date.month,
+        val_year=val_date.year, val_month=val_date.month
     )
     print(f"Run ID: {run_id}")
 
 
 
+
 if __name__ == "__main__":
+    import argparse
     from prefect.schedules import Schedule
-    master_flow.serve(
-        name="duration-prediction-orchestration",
-        tags=["duration-prediction", "orchestration"],
-        description="Orchestration flow for duration prediction using Prefect",
-        version="1.0.0",  # Versión del flujo
-        schedule= Schedule(cron="0 3 1 * *",
-                           timezone="America/Mexico_City")
-    )
+
+    parser = argparse.ArgumentParser(description='Orquestación para predicción de duración de taxis.')
+    parser.add_argument('--train_date', type=str, help='Fecha de entrenamiento (formato YYYY-MM-DD)')
+    parser.add_argument('--val_date', type=str, help='Fecha de validación (formato YYYY-MM-DD)')
+    
+    args = parser.parse_args()
+
+    if args.train_date and args.val_date:
+        # Caso 1: Backfill manual
+        run_id = master_flow(train_date=args.train_date, val_date=args.val_date)
+    else:
+        # Caso 2: Programación automática con schedule
+        master_flow.serve(
+            name="duration-prediction-orchestration",
+            tags=["duration-prediction", "orchestration"],
+            description="Orchestration flow for duration prediction using Prefect",
+            version="2.0.0",
+            parameters={},  # Usa la lógica interna de fechas por defecto
+            schedule=Schedule(
+                cron="0 1 1 * *",  # 1ro de cada mes a las 9:00 AM
+                timezone="America/Mexico_City"
+            )
+        )
 
 # prefect server start antes de ejecutar el flow
+# En otro terminal: python duration-prediction-orchestration_module.py --train_date 2023-01-01 --val_date 2023-02-01
