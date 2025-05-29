@@ -63,7 +63,7 @@ def create_X(df, dv=None):
     tags=["model_training", "xgboost", "mlflow"],
 )
 def train_model(X_train, y_train, X_val, y_val, dv):
-    with mlflow.start_run(run_name='taxi_pred_xgboost_orchestration') as run:
+    with mlflow.start_run(run_name='taxi_pred_xgboost_orchestration2') as run:
         train = xgb.DMatrix(X_train, label=y_train)
         valid = xgb.DMatrix(X_val, label=y_val)
 
@@ -99,12 +99,7 @@ def train_model(X_train, y_train, X_val, y_val, dv):
 
         return run.info.run_id
 
-@task(
-    retries=3,
-    retry_delay_seconds=2,
-    name="Run",
-    tags=["duration_prediction", "mlflow"],
-)
+@flow
 def run(year, month):
     df_train = read_dataframe(year=year, month=month)
 
@@ -123,8 +118,7 @@ def run(year, month):
     print(f"MLflow run_id: {run_id}")
     return run_id
 
-@flow
-def taxi_prediction():
+if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description='Train a model to predict taxi trip duration.')
@@ -138,12 +132,4 @@ def taxi_prediction():
         f.write(run_id)
 
 
-
-
-if __name__ == "__main__":
-
-    taxi_prediction()
-    # run_id = run(year=2021, month=2)
-    # print(f"MLflow run_id: {run_id}")
-    # with open("run_id.txt", "w") as f:
-    #     f.write(run_id)
+# prefect server start antes de ejecutar el flow
