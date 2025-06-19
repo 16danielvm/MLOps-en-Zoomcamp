@@ -14,4 +14,4 @@ RUN pipenv install --system --deploy
 COPY ["homework.py", "./"]
 
 # Ejecutar directamente el script al iniciar el contenedor
-CMD ["python", "predict.py"]
+CMD ["python", "predict.py", "2023","5"]
